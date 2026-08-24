@@ -1,4 +1,4 @@
-﻿openapi: 3.0.0
+openapi: 3.0.0
 info:
   title: ngw-admin-apps-bulk-notifications
   version: 1.0.0
@@ -55,18 +55,7 @@ paths:
             type: string
             enum: [ACTIVE, INACTIVE]
             default: ACTIVE
-        ErrorResponse:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        details:
-          type: array
-          items:
-            type: string
-  responses:
+      responses:
         '200':
           description: OK
           content:
@@ -81,6 +70,7 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+
   /bulk-notifications/templates/{templateCode}:
     get:
       tags:
@@ -116,18 +106,7 @@ paths:
           schema:
             type: string
             enum: [SMS, EMAIL]
-        ErrorResponse:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        details:
-          type: array
-          items:
-            type: string
-  responses:
+      responses:
         '200':
           description: OK
           content:
@@ -136,6 +115,7 @@ paths:
                 $ref: '#/components/schemas/BulkTemplateDetails'
         '404':
           $ref: '#/components/responses/NotFound'
+
   /bulk-notifications/excel-template:
     post:
       tags:
@@ -165,18 +145,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/BulkExcelTemplateRequest'
-        ErrorResponse:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        details:
-          type: array
-          items:
-            type: string
-  responses:
+      responses:
         '200':
           description: Excel template generated
           content:
@@ -186,6 +155,7 @@ paths:
                 format: binary
         '400':
           $ref: '#/components/responses/BadRequest'
+
   /bulk-notifications/validate-upload:
     post:
       tags:
@@ -222,18 +192,7 @@ paths:
                 file:
                   type: string
                   format: binary
-        ErrorResponse:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        details:
-          type: array
-          items:
-            type: string
-  responses:
+      responses:
         '200':
           description: Validation result
           content:
@@ -242,6 +201,7 @@ paths:
                 $ref: '#/components/schemas/BulkUploadValidationResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
+
   /bulk-notifications/requests:
     post:
       tags:
@@ -271,18 +231,7 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/BulkNotificationSubmitRequest'
-        ErrorResponse:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        details:
-          type: array
-          items:
-            type: string
-  responses:
+      responses:
         '201':
           description: Created
           content:
@@ -317,18 +266,7 @@ paths:
           schema:
             type: string
             enum: [SMS, EMAIL]
-        ErrorResponse:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        details:
-          type: array
-          items:
-            type: string
-  responses:
+      responses:
         '200':
           description: OK
           content:
@@ -337,6 +275,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/BulkNotificationRequestSummary'
+
   /bulk-notifications/requests/{bulkRequestId}:
     get:
       tags:
@@ -356,18 +295,7 @@ paths:
           schema:
             type: string
             format: uuid
-        ErrorResponse:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        details:
-          type: array
-          items:
-            type: string
-  responses:
+      responses:
         '200':
           description: OK
           content:
@@ -376,6 +304,7 @@ paths:
                 $ref: '#/components/schemas/BulkNotificationRequestDetails'
         '404':
           $ref: '#/components/responses/NotFound'
+
   /bulk-notifications/tasks/{taskId}/approve:
     post:
       tags:
@@ -401,24 +330,14 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/TaskDecisionRequest'
-        ErrorResponse:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        details:
-          type: array
-          items:
-            type: string
-  responses:
+      responses:
         '200':
           description: Approved
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/TaskDecisionResponse'
+
   /bulk-notifications/tasks/{taskId}/reject:
     post:
       tags:
@@ -444,24 +363,14 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/TaskDecisionRequest'
-        ErrorResponse:
-      type: object
-      properties:
-        code:
-          type: string
-        message:
-          type: string
-        details:
-          type: array
-          items:
-            type: string
-  responses:
+      responses:
         '200':
           description: Rejected
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/TaskDecisionResponse'
+
 components:
   parameters:
     X-SAIB-Timestamp:
@@ -831,8 +740,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
-  schemas_error_placeholder:
-    note: ErrorResponse is defined below for tooling that does not support repeated schema maps.
   securitySchemes:
     bearerAuth:
       type: http
@@ -840,5 +747,3 @@ components:
       bearerFormat: JWT
 security:
   - bearerAuth: []
-
-
