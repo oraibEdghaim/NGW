@@ -1,0 +1,250 @@
+package sa.com.saib.ngw.admin.apps.controller;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import sa.com.saib.ngw.admin.apps.model.common.EventResponse;
+import sa.com.saib.ngw.admin.apps.service.EventDefinitionService;
+import sa.com.saib.ngw.common.contracts.model.document.EventDefinitionDocument;
+import sa.com.saib.ngw.common.contracts.security.HasAccess;
+
+/**
+ * REST Controller for event definitions.
+ * Base path: /api/admin/apps/events
+ */
+@Slf4j
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/admin/apps/events")
+@Tag(name = "Event Definition Management", description = "APIs for managing event definitions")
+public class EventDefinitionController {
+
+    private final EventDefinitionService service;
+
+    @Operation(summary = "List event definitions", description = "Retrieve event definitions with optional filters and pagination.")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved event definitions",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = EventDefinitionDocument.class)))
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @HasAccess("hasAnyPermission('event-definition-management:view')")
+    public ResponseEntity<Flux<EventDefinitionDocument>> list(
+            @Parameter(description = "Filter by source system") @RequestParam(required = false) String sourceSystem,
+            @Parameter(description = "Filter by event code") @RequestParam(required = false) String eventCode,
+            @Parameter(description = "Filter by status") @RequestParam(required = false) String status,
+            @Parameter(description = "Requested page (zero-based)") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Requested page size") @RequestParam(defaultValue = "10") int size) {
+        log.debug("Listing event definitions | sourceSystem={}, eventCode={}, status={}, page={}, size={}",
+                sourceSystem, eventCode, status, page, size);
+        return ResponseEntity.ok(service.list(sourceSystem, eventCode, status, page, size));
+    }
+
+    @Operation(summary = "Get event definition by ID", description = "Retrieve a single event definition by its ID.")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved event definition",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = EventDefinitionDocument.class)))
+    @ApiResponse(responseCode = "404", description = "Event definition not found")
+    @GetMapping(value = "/{eventId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @HasAccess("hasAnyPermission('event-definition-management:view')")
+    public Mono<ResponseEntity<EventDefinitionDocument>> getById(
+            @Parameter(description = "Event definition ID", required = true) @PathVariable String eventId) {
+        return service.getEventById(eventId)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @Operation(summary = "Create event definition", description = "Create a new event definition.")
+    @ApiResponse(responseCode = "201", description = "Event definition created successfully",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = EventResponse.class)))
+    @ApiResponse(responseCode = "409", description = "Event definition already exists")
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @HasAccess("hasAnyPermission('event-definition-management:create')")
+    public Mono<ResponseEntity<EventResponse>> create(@RequestBody EventDefinitionDocument request) {
+        log.info("Creating event definition for {}/{}", request.getSourceSystem(), request.getEventCode());
+        return service.createEvent(request)
+                .map(saved -> ResponseEntity.status(HttpStatus.CREATED).body(saved));
+    }
+
+    @Operation(summary = "Update event definition", description = "Update an existing event definition by its ID.")
+    @ApiResponse(responseCode = "200", description = "Event definition updated successfully",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = EventResponse.class)))
+    @ApiResponse(responseCode = "404", description = "Event definition not found")
+    @ApiResponse(responseCode = "409", description = "Event definition already exists")
+    @PutMapping(value = "/{eventId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @HasAccess("hasAnyPermission('event-definition-management:modify')")
+    public Mono<ResponseEntity<EventResponse>> update(
+            @Parameter(description = "Event definition ID", required = true) @PathVariable String eventId,
+            @RequestBody EventDefinitionDocument request) {
+        log.info("Updating event definition id={}", eventId);
+        return service.updateEvent(eventId, request)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @Operation(summary = "Update event definition status", description = "Update the status of an event definition.")
+    @ApiResponse(responseCode = "200", description = "Status updated successfully",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = EventDefinitionDocument.class)))
+    @ApiResponse(responseCode = "404", description = "Event definition not found")
+    @PatchMapping(value = "/{eventId}/status", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @HasAccess("hasAnyPermission('event-definition-management:modify')")
+    public Mono<ResponseEntity<EventDefinitionDocument>> updateStatus(
+            @Parameter(description = "Event definition ID", required = true) @PathVariable String eventId,
+            @RequestBody StatusRequest body) {
+        log.info("Updating event definition id={} status={}", eventId, body.getStatus());
+        return service.updateStatus(eventId, body.getStatus())
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @Data
+    public static class StatusRequest {
+        private String status;
+    }
+}
+
+
+package sa.com.saib.ngw.admin.apps.controller;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import sa.com.saib.ngw.admin.apps.service.EventMappingService;
+import sa.com.saib.ngw.common.contracts.model.common.dto.TestMappingRequest;
+import sa.com.saib.ngw.common.contracts.model.common.dto.TestMappingResponse;
+import sa.com.saib.ngw.common.contracts.model.document.EventMappingDocument;
+import sa.com.saib.ngw.common.contracts.security.HasAccess;
+
+/**
+ * REST Controller for event template mappings.
+ * Base path: /api/admin/apps/events/mappings
+ */
+@Slf4j
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/admin/apps/events/mappings")
+@Tag(name = "Event Mapping Management", description = "APIs for managing event-to-template mappings")
+public class EventMappingController {
+
+    private final EventMappingService service;
+
+    @Operation(summary = "List event mappings", description = "Retrieve event mappings with optional filters and pagination.")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved event mappings",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = EventMappingDocument.class)))
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @HasAccess("hasAnyPermission('event-mapping-management:view')")
+    public ResponseEntity<Flux<EventMappingDocument>> list(
+            @Parameter(description = "Filter by source system") @RequestParam(required = false) String sourceSystem,
+            @Parameter(description = "Filter by event code") @RequestParam(required = false) String eventCode,
+            @Parameter(description = "Filter by template code") @RequestParam(required = false) String templateCode,
+            @Parameter(description = "Filter by active status") @RequestParam(required = false) Boolean active,
+            @Parameter(description = "Requested page (zero-based)") @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Requested page size") @RequestParam(defaultValue = "10") int size) {
+        log.debug("Listing event mappings | sourceSystem={}, eventCode={}, templateCode={}, active={}, page={}, size={}",
+                sourceSystem, eventCode, templateCode, active, page, size);
+        return ResponseEntity.ok(service.list(sourceSystem, eventCode, templateCode, active, page, size));
+    }
+
+    @Operation(summary = "Test event mapping", description = "Resolve template parameters from a sample event envelope.")
+    @ApiResponse(responseCode = "200", description = "Mapping test completed",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = TestMappingResponse.class)))
+    @ApiResponse(responseCode = "404", description = "Mapping not found")
+    @PostMapping(value = "/test", produces = MediaType.APPLICATION_JSON_VALUE)
+    @HasAccess("hasAnyPermission('event-mapping-management:view')")
+    public Mono<TestMappingResponse> test(@RequestBody TestMappingRequest body) {
+        log.info("Testing event mapping for {}/{}/{}", body.getSourceSystem(), body.getEventCode(), body.getTemplateCode());
+        return service.testMapping(body);
+    }
+
+    @Operation(summary = "Get event mapping by ID", description = "Retrieve a single event mapping by its ID.")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved event mapping",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = EventMappingDocument.class)))
+    @ApiResponse(responseCode = "404", description = "Mapping not found")
+    @GetMapping(value = "/{mappingId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @HasAccess("hasAnyPermission('event-mapping-management:view')")
+    public Mono<ResponseEntity<EventMappingDocument>> get(
+            @Parameter(description = "Mapping ID", required = true) @PathVariable String mappingId) {
+        return service.getById(mappingId)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @Operation(summary = "Create event mapping", description = "Create a new event-to-template mapping.")
+    @ApiResponse(responseCode = "201", description = "Event mapping created successfully",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = EventMappingDocument.class)))
+    @ApiResponse(responseCode = "400", description = "Invalid mapping data provided")
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @HasAccess("hasAnyPermission('event-mapping-management:create')")
+    public Mono<ResponseEntity<EventMappingDocument>> create(@RequestBody EventMappingDocument body) {
+        log.info("Creating event mapping for {}/{}/{}", body.getSourceSystem(), body.getEventCode(), body.getTemplateCode());
+        return service.create(body)
+                .map(saved -> ResponseEntity.status(HttpStatus.CREATED).body(saved));
+    }
+
+    @Operation(summary = "Update event mapping", description = "Update an existing event mapping by its ID.")
+    @ApiResponse(responseCode = "200", description = "Event mapping updated successfully",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = EventMappingDocument.class)))
+    @ApiResponse(responseCode = "400", description = "Invalid mapping data provided")
+    @ApiResponse(responseCode = "404", description = "Mapping not found")
+    @PutMapping(value = "/{mappingId}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @HasAccess("hasAnyPermission('event-mapping-management:modify')")
+    public Mono<ResponseEntity<EventMappingDocument>> update(
+            @Parameter(description = "Mapping ID", required = true) @PathVariable String mappingId,
+            @RequestBody EventMappingDocument body) {
+        log.info("Updating event mapping id={}", mappingId);
+        return service.update(mappingId, body)
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @Operation(summary = "Set mapping active status", description = "Activate or deactivate an event mapping.")
+    @ApiResponse(responseCode = "200", description = "Event mapping status updated successfully",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = EventMappingDocument.class)))
+    @ApiResponse(responseCode = "404", description = "Mapping not found")
+    @PatchMapping(value = "/{mappingId}/active", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @HasAccess("hasAnyPermission('event-mapping-management:modify')")
+    public Mono<ResponseEntity<EventMappingDocument>> setActive(
+            @Parameter(description = "Mapping ID", required = true) @PathVariable String mappingId,
+            @RequestBody ActiveRequest body) {
+        log.info("Setting event mapping id={} active={}", mappingId, body.isActive());
+        return service.setActive(mappingId, body.isActive())
+                .map(ResponseEntity::ok)
+                .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @Data
+    public static class ActiveRequest {
+        private boolean active;
+    }
+}
