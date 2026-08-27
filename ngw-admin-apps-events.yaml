@@ -1,0 +1,829 @@
+openapi: 3.0.0
+info:
+  title: ngw-admin-apps-events
+  version: 1.0.0
+  x-ibm-name: ngw-admin-apps-events
+  description: Event definition and event-to-template mapping APIs for NGW Admin Apps.
+servers:
+  - url: /api/admin/apps
+    description: base path
+tags:
+  - name: Event Definition Management
+    description: APIs for managing event definitions
+  - name: Event Mapping Management
+    description: APIs for managing event-to-template mappings
+paths:
+  /events:
+    get:
+      tags:
+        - Event Definition Management
+      summary: List event definitions
+      description: Retrieve event definitions with optional filters and pagination.
+      operationId: listEventDefinitions
+      x-ngw-permission: event-definition-management:view
+      parameters:
+        - $ref: '#/components/parameters/X-SAIB-Timestamp'
+        - $ref: '#/components/parameters/X-SAIB-Function'
+        - $ref: '#/components/parameters/X-SAIB-Transaction-Id'
+        - $ref: '#/components/parameters/X-SAIB-Interaction-Id'
+        - $ref: '#/components/parameters/X-SAIB-Correlation-Id'
+        - $ref: '#/components/parameters/X-SAIB-Language'
+        - $ref: '#/components/parameters/X-SAIB-Time-Zone'
+        - $ref: '#/components/parameters/X-SAIB-Channel'
+        - name: sourceSystem
+          in: query
+          required: false
+          description: Filter by source system
+          schema:
+            type: string
+            example: CORE
+        - name: eventCode
+          in: query
+          required: false
+          description: Filter by event code
+          schema:
+            type: string
+            example: TXN_SUCCESS
+        - name: status
+          in: query
+          required: false
+          description: Filter by status
+          schema:
+            type: string
+            example: ACTIVE
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/size'
+      responses:
+        '200':
+          description: Successfully retrieved event definitions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EventDefinitionDocument'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+        - Event Definition Management
+      summary: Create event definition
+      description: Create a new event definition.
+      operationId: createEventDefinition
+      x-ngw-permission: event-definition-management:create
+      parameters:
+        - $ref: '#/components/parameters/X-SAIB-Timestamp'
+        - $ref: '#/components/parameters/X-SAIB-Function'
+        - $ref: '#/components/parameters/X-SAIB-Transaction-Id'
+        - $ref: '#/components/parameters/X-SAIB-Interaction-Id'
+        - $ref: '#/components/parameters/X-SAIB-Correlation-Id'
+        - $ref: '#/components/parameters/X-SAIB-Language'
+        - $ref: '#/components/parameters/X-SAIB-Time-Zone'
+        - $ref: '#/components/parameters/X-SAIB-Channel'
+        - $ref: '#/components/parameters/X-SAIB-CIF'
+        - $ref: '#/components/parameters/X-SAIB-Customer-IP-Address'
+        - $ref: '#/components/parameters/X-SAIB-Idempotency-Key'
+        - $ref: '#/components/parameters/X-JWS-Signature'
+        - $ref: '#/components/parameters/X-SAIB-Session-Id'
+        - $ref: '#/components/parameters/X-SAIB-Screen-Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventDefinitionDocument'
+      responses:
+        '201':
+          description: Event definition created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /events/mappings:
+    get:
+      tags:
+        - Event Mapping Management
+      summary: List event mappings
+      description: Retrieve event mappings with optional filters and pagination.
+      operationId: listEventMappings
+      x-ngw-permission: event-mapping-management:view
+      parameters:
+        - $ref: '#/components/parameters/X-SAIB-Timestamp'
+        - $ref: '#/components/parameters/X-SAIB-Function'
+        - $ref: '#/components/parameters/X-SAIB-Transaction-Id'
+        - $ref: '#/components/parameters/X-SAIB-Interaction-Id'
+        - $ref: '#/components/parameters/X-SAIB-Correlation-Id'
+        - $ref: '#/components/parameters/X-SAIB-Language'
+        - $ref: '#/components/parameters/X-SAIB-Time-Zone'
+        - $ref: '#/components/parameters/X-SAIB-Channel'
+        - name: sourceSystem
+          in: query
+          required: false
+          description: Filter by source system
+          schema:
+            type: string
+            example: CORE
+        - name: eventCode
+          in: query
+          required: false
+          description: Filter by event code
+          schema:
+            type: string
+            example: TXN_SUCCESS
+        - name: templateCode
+          in: query
+          required: false
+          description: Filter by template code
+          schema:
+            type: string
+            example: 3DS_OTP
+        - name: active
+          in: query
+          required: false
+          description: Filter by active status
+          schema:
+            type: boolean
+        - $ref: '#/components/parameters/page'
+        - $ref: '#/components/parameters/size'
+      responses:
+        '200':
+          description: Successfully retrieved event mappings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EventMappingDocument'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags:
+        - Event Mapping Management
+      summary: Create event mapping
+      description: Create a new event-to-template mapping.
+      operationId: createEventMapping
+      x-ngw-permission: event-mapping-management:create
+      parameters:
+        - $ref: '#/components/parameters/X-SAIB-Timestamp'
+        - $ref: '#/components/parameters/X-SAIB-Function'
+        - $ref: '#/components/parameters/X-SAIB-Transaction-Id'
+        - $ref: '#/components/parameters/X-SAIB-Interaction-Id'
+        - $ref: '#/components/parameters/X-SAIB-Correlation-Id'
+        - $ref: '#/components/parameters/X-SAIB-Language'
+        - $ref: '#/components/parameters/X-SAIB-Time-Zone'
+        - $ref: '#/components/parameters/X-SAIB-Channel'
+        - $ref: '#/components/parameters/X-SAIB-CIF'
+        - $ref: '#/components/parameters/X-SAIB-Customer-IP-Address'
+        - $ref: '#/components/parameters/X-SAIB-Idempotency-Key'
+        - $ref: '#/components/parameters/X-JWS-Signature'
+        - $ref: '#/components/parameters/X-SAIB-Session-Id'
+        - $ref: '#/components/parameters/X-SAIB-Screen-Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventMappingDocument'
+      responses:
+        '201':
+          description: Event mapping created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventMappingDocument'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+  /events/mappings/test:
+    post:
+      tags:
+        - Event Mapping Management
+      summary: Test event mapping
+      description: Resolve template parameters from a sample event envelope.
+      operationId: testEventMapping
+      x-ngw-permission: event-mapping-management:view
+      parameters:
+        - $ref: '#/components/parameters/X-SAIB-Timestamp'
+        - $ref: '#/components/parameters/X-SAIB-Function'
+        - $ref: '#/components/parameters/X-SAIB-Transaction-Id'
+        - $ref: '#/components/parameters/X-SAIB-Interaction-Id'
+        - $ref: '#/components/parameters/X-SAIB-Correlation-Id'
+        - $ref: '#/components/parameters/X-SAIB-Language'
+        - $ref: '#/components/parameters/X-SAIB-Time-Zone'
+        - $ref: '#/components/parameters/X-SAIB-Channel'
+        - $ref: '#/components/parameters/X-SAIB-Session-Id'
+        - $ref: '#/components/parameters/X-SAIB-Screen-Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestMappingRequest'
+      responses:
+        '200':
+          description: Mapping test completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestMappingResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /events/mappings/{mappingId}:
+    get:
+      tags:
+        - Event Mapping Management
+      summary: Get event mapping by ID
+      description: Retrieve a single event mapping by its ID.
+      operationId: getEventMappingById
+      x-ngw-permission: event-mapping-management:view
+      parameters:
+        - $ref: '#/components/parameters/X-SAIB-Timestamp'
+        - $ref: '#/components/parameters/X-SAIB-Function'
+        - $ref: '#/components/parameters/X-SAIB-Transaction-Id'
+        - $ref: '#/components/parameters/X-SAIB-Interaction-Id'
+        - $ref: '#/components/parameters/X-SAIB-Correlation-Id'
+        - $ref: '#/components/parameters/X-SAIB-Language'
+        - $ref: '#/components/parameters/X-SAIB-Time-Zone'
+        - $ref: '#/components/parameters/X-SAIB-Channel'
+        - $ref: '#/components/parameters/mappingId'
+      responses:
+        '200':
+          description: Successfully retrieved event mapping
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventMappingDocument'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - Event Mapping Management
+      summary: Update event mapping
+      description: Update an existing event mapping by its ID.
+      operationId: updateEventMapping
+      x-ngw-permission: event-mapping-management:modify
+      parameters:
+        - $ref: '#/components/parameters/X-SAIB-Timestamp'
+        - $ref: '#/components/parameters/X-SAIB-Function'
+        - $ref: '#/components/parameters/X-SAIB-Transaction-Id'
+        - $ref: '#/components/parameters/X-SAIB-Interaction-Id'
+        - $ref: '#/components/parameters/X-SAIB-Correlation-Id'
+        - $ref: '#/components/parameters/X-SAIB-Language'
+        - $ref: '#/components/parameters/X-SAIB-Time-Zone'
+        - $ref: '#/components/parameters/X-SAIB-Channel'
+        - $ref: '#/components/parameters/X-SAIB-CIF'
+        - $ref: '#/components/parameters/X-SAIB-Customer-IP-Address'
+        - $ref: '#/components/parameters/X-SAIB-Idempotency-Key'
+        - $ref: '#/components/parameters/X-JWS-Signature'
+        - $ref: '#/components/parameters/X-SAIB-Session-Id'
+        - $ref: '#/components/parameters/X-SAIB-Screen-Id'
+        - $ref: '#/components/parameters/mappingId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventMappingDocument'
+      responses:
+        '200':
+          description: Event mapping updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventMappingDocument'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /events/mappings/{mappingId}/active:
+    patch:
+      tags:
+        - Event Mapping Management
+      summary: Set mapping active status
+      description: Activate or deactivate an event mapping.
+      operationId: setEventMappingActive
+      x-ngw-permission: event-mapping-management:modify
+      parameters:
+        - $ref: '#/components/parameters/X-SAIB-Timestamp'
+        - $ref: '#/components/parameters/X-SAIB-Function'
+        - $ref: '#/components/parameters/X-SAIB-Transaction-Id'
+        - $ref: '#/components/parameters/X-SAIB-Interaction-Id'
+        - $ref: '#/components/parameters/X-SAIB-Correlation-Id'
+        - $ref: '#/components/parameters/X-SAIB-Language'
+        - $ref: '#/components/parameters/X-SAIB-Time-Zone'
+        - $ref: '#/components/parameters/X-SAIB-Channel'
+        - $ref: '#/components/parameters/X-SAIB-Session-Id'
+        - $ref: '#/components/parameters/X-SAIB-Screen-Id'
+        - $ref: '#/components/parameters/mappingId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActiveRequest'
+      responses:
+        '200':
+          description: Event mapping status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventMappingDocument'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /events/{eventId}:
+    get:
+      tags:
+        - Event Definition Management
+      summary: Get event definition by ID
+      description: Retrieve a single event definition by its ID.
+      operationId: getEventDefinitionById
+      x-ngw-permission: event-definition-management:view
+      parameters:
+        - $ref: '#/components/parameters/X-SAIB-Timestamp'
+        - $ref: '#/components/parameters/X-SAIB-Function'
+        - $ref: '#/components/parameters/X-SAIB-Transaction-Id'
+        - $ref: '#/components/parameters/X-SAIB-Interaction-Id'
+        - $ref: '#/components/parameters/X-SAIB-Correlation-Id'
+        - $ref: '#/components/parameters/X-SAIB-Language'
+        - $ref: '#/components/parameters/X-SAIB-Time-Zone'
+        - $ref: '#/components/parameters/X-SAIB-Channel'
+        - $ref: '#/components/parameters/eventId'
+      responses:
+        '200':
+          description: Successfully retrieved event definition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventDefinitionDocument'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags:
+        - Event Definition Management
+      summary: Update event definition
+      description: Update an existing event definition by its ID.
+      operationId: updateEventDefinition
+      x-ngw-permission: event-definition-management:modify
+      parameters:
+        - $ref: '#/components/parameters/X-SAIB-Timestamp'
+        - $ref: '#/components/parameters/X-SAIB-Function'
+        - $ref: '#/components/parameters/X-SAIB-Transaction-Id'
+        - $ref: '#/components/parameters/X-SAIB-Interaction-Id'
+        - $ref: '#/components/parameters/X-SAIB-Correlation-Id'
+        - $ref: '#/components/parameters/X-SAIB-Language'
+        - $ref: '#/components/parameters/X-SAIB-Time-Zone'
+        - $ref: '#/components/parameters/X-SAIB-Channel'
+        - $ref: '#/components/parameters/X-SAIB-CIF'
+        - $ref: '#/components/parameters/X-SAIB-Customer-IP-Address'
+        - $ref: '#/components/parameters/X-SAIB-Idempotency-Key'
+        - $ref: '#/components/parameters/X-JWS-Signature'
+        - $ref: '#/components/parameters/X-SAIB-Session-Id'
+        - $ref: '#/components/parameters/X-SAIB-Screen-Id'
+        - $ref: '#/components/parameters/eventId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventDefinitionDocument'
+      responses:
+        '200':
+          description: Event definition updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /events/{eventId}/status:
+    patch:
+      tags:
+        - Event Definition Management
+      summary: Update event definition status
+      description: Update the status of an event definition.
+      operationId: updateEventDefinitionStatus
+      x-ngw-permission: event-definition-management:modify
+      parameters:
+        - $ref: '#/components/parameters/X-SAIB-Timestamp'
+        - $ref: '#/components/parameters/X-SAIB-Function'
+        - $ref: '#/components/parameters/X-SAIB-Transaction-Id'
+        - $ref: '#/components/parameters/X-SAIB-Interaction-Id'
+        - $ref: '#/components/parameters/X-SAIB-Correlation-Id'
+        - $ref: '#/components/parameters/X-SAIB-Language'
+        - $ref: '#/components/parameters/X-SAIB-Time-Zone'
+        - $ref: '#/components/parameters/X-SAIB-Channel'
+        - $ref: '#/components/parameters/X-SAIB-Session-Id'
+        - $ref: '#/components/parameters/X-SAIB-Screen-Id'
+        - $ref: '#/components/parameters/eventId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusRequest'
+      responses:
+        '200':
+          description: Status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventDefinitionDocument'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  parameters:
+    eventId:
+      name: eventId
+      in: path
+      required: true
+      description: Event definition ID
+      schema:
+        type: string
+        example: 66f1a2b3c4d5e6f7a8b9c0d1
+    mappingId:
+      name: mappingId
+      in: path
+      required: true
+      description: Mapping ID
+      schema:
+        type: string
+        example: 66f1a2b3c4d5e6f7a8b9c0d2
+    page:
+      name: page
+      in: query
+      required: false
+      description: Requested page (zero-based)
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+    size:
+      name: size
+      in: query
+      required: false
+      description: Requested page size
+      schema:
+        type: integer
+        default: 10
+        minimum: 1
+    X-SAIB-Timestamp:
+      name: X-SAIB-Timestamp
+      in: header
+      required: true
+      schema:
+        type: string
+        format: date-time
+    X-SAIB-Function:
+      name: X-SAIB-Function
+      in: header
+      required: true
+      schema:
+        type: string
+    X-SAIB-Transaction-Id:
+      name: X-SAIB-Transaction-Id
+      in: header
+      required: true
+      schema:
+        type: string
+    X-SAIB-Interaction-Id:
+      name: X-SAIB-Interaction-Id
+      in: header
+      required: false
+      schema:
+        type: string
+    X-SAIB-Correlation-Id:
+      name: X-SAIB-Correlation-Id
+      in: header
+      required: true
+      schema:
+        type: string
+    X-SAIB-Language:
+      name: X-SAIB-Language
+      in: header
+      required: false
+      schema:
+        type: string
+        enum:
+          - EN
+          - AR
+    X-SAIB-Time-Zone:
+      name: X-SAIB-Time-Zone
+      in: header
+      required: false
+      schema:
+        type: string
+        example: 'UTC+03:00'
+    X-SAIB-Channel:
+      name: X-SAIB-Channel
+      in: header
+      required: true
+      schema:
+        type: string
+        example: NGW_ADMIN_PORTAL
+    X-SAIB-CIF:
+      name: X-SAIB-CIF
+      in: header
+      required: false
+      schema:
+        type: string
+    X-SAIB-Customer-IP-Address:
+      name: X-SAIB-Customer-IP-Address
+      in: header
+      required: false
+      schema:
+        type: string
+    X-SAIB-Idempotency-Key:
+      name: X-SAIB-Idempotency-Key
+      in: header
+      required: false
+      schema:
+        type: string
+    X-JWS-Signature:
+      name: X-JWS-Signature
+      in: header
+      required: false
+      schema:
+        type: string
+    X-SAIB-Session-Id:
+      name: X-SAIB-Session-Id
+      in: header
+      required: false
+      schema:
+        type: string
+    X-SAIB-Screen-Id:
+      name: X-SAIB-Screen-Id
+      in: header
+      required: false
+      schema:
+        type: string
+  schemas:
+    EventDefinitionDocument:
+      type: object
+      required:
+        - sourceSystem
+        - eventCode
+      properties:
+        id:
+          type: string
+          example: 66f1a2b3c4d5e6f7a8b9c0d1
+        sourceSystem:
+          type: string
+          example: CORE
+        eventCode:
+          type: string
+          example: TXN_SUCCESS
+        eventName:
+          type: string
+          example: Transaction Success
+        description:
+          type: string
+        category:
+          type: string
+          example: TRX
+        status:
+          type: string
+          example: ACTIVE
+        payloadSchema:
+          type: object
+          additionalProperties: true
+        createdDate:
+          type: string
+          format: date-time
+        lastModifiedDate:
+          type: string
+          format: date-time
+        createdBy:
+          type: string
+        lastModifiedBy:
+          type: string
+    EventResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 66f1a2b3c4d5e6f7a8b9c0d1
+        sourceSystem:
+          type: string
+          example: CORE
+        eventCode:
+          type: string
+          example: TXN_SUCCESS
+        status:
+          type: string
+          example: ACTIVE
+        message:
+          type: string
+          example: Event definition created successfully
+    StatusRequest:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          example: ACTIVE
+    EventMappingDocument:
+      type: object
+      required:
+        - sourceSystem
+        - eventCode
+        - templateCode
+      properties:
+        id:
+          type: string
+          example: 66f1a2b3c4d5e6f7a8b9c0d2
+        sourceSystem:
+          type: string
+          example: CORE
+        eventCode:
+          type: string
+          example: TXN_SUCCESS
+        templateCode:
+          type: string
+          example: 3DS_OTP
+        active:
+          type: boolean
+          example: true
+        parameterMappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/ParameterMapping'
+        createdDate:
+          type: string
+          format: date-time
+        lastModifiedDate:
+          type: string
+          format: date-time
+        createdBy:
+          type: string
+        lastModifiedBy:
+          type: string
+    ParameterMapping:
+      type: object
+      properties:
+        name:
+          type: string
+          example: amount
+        path:
+          type: string
+          example: $.payload.amount
+        defaultValue:
+          type: string
+          nullable: true
+    ActiveRequest:
+      type: object
+      required:
+        - active
+      properties:
+        active:
+          type: boolean
+          example: true
+    TestMappingRequest:
+      type: object
+      required:
+        - sourceSystem
+        - eventCode
+        - templateCode
+      properties:
+        sourceSystem:
+          type: string
+          example: CORE
+        eventCode:
+          type: string
+          example: TXN_SUCCESS
+        templateCode:
+          type: string
+          example: 3DS_OTP
+        eventEnvelope:
+          type: object
+          additionalProperties: true
+          example:
+            sourceSystem: CORE
+            eventCode: TXN_SUCCESS
+            payload:
+              cif: '123456789'
+              amount: '100.00'
+              currency: SAR
+    TestMappingResponse:
+      type: object
+      properties:
+        sourceSystem:
+          type: string
+          example: CORE
+        eventCode:
+          type: string
+          example: TXN_SUCCESS
+        templateCode:
+          type: string
+          example: 3DS_OTP
+        success:
+          type: boolean
+        resolvedParameters:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            amount: '100.00'
+            currency: SAR
+        missingParameters:
+          type: array
+          items:
+            type: string
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: array
+          items:
+            type: string
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Unauthorized:
+      description: Unauthorized
+    Forbidden:
+      description: Forbidden
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: Resource already exists
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []
